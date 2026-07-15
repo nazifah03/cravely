@@ -12,7 +12,9 @@ class KategoriController extends Controller
      */
     public function index()
     {
-        $kategori = Kategori::all();
+        // withCount('menu') menghitung jumlah menu per kategori dalam satu query,
+        // supaya tidak N+1 query saat ditampilkan di view (bukan lazy-load per baris).
+        $kategori = Kategori::withCount('menu')->orderBy('nama_kategori')->get();
 
         return view('kategori.index', compact('kategori'));
     }
@@ -30,47 +32,62 @@ class KategoriController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'nama_kategori' => 'required|max:100'
+        $validated = $request->validate([
+            'nama_kategori' => 'required|string|max:100|unique:kategori,nama_kategori',
+        ], [
+            'nama_kategori.unique' => 'Kategori dengan nama ini sudah ada.',
         ]);
 
-        Kategori::create([
-            'nama_kategori' => $request->nama_kategori
-        ]);
+        Kategori::create($validated);
 
         return redirect()->route('kategori.index')
             ->with('success', 'Kategori berhasil ditambahkan.');
     }
 
     /**
-     * Menampilkan detail kategori.
+     * Menampilkan detail kategori beserta menu di dalamnya.
      */
-    public function show(string $id)
+    public function show(Kategori $kategori)
     {
-        //
+        $kategori->load('menu');
+
+        return view('kategori.show', compact('kategori'));
     }
 
     /**
      * Menampilkan form edit kategori.
      */
-    public function edit(string $id)
+    public function edit(Kategori $kategori)
     {
-        //
+        return view('kategori.edit', compact('kategori'));
     }
 
     /**
      * Mengupdate kategori.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Kategori $kategori)
     {
-        //
+        $validated = $request->validate([
+            'nama_kategori' => 'required|string|max:100|unique:kategori,nama_kategori,' . $kategori->id_kategori . ',id_kategori',
+        ], [
+            'nama_kategori.unique' => 'Kategori dengan nama ini sudah ada.',
+        ]);
+
+        $kategori->update($validated);
+
+        return redirect()->route('kategori.index')
+            ->with('success', 'Kategori berhasil diperbarui.');
     }
 
     /**
      * Menghapus kategori.
+     * Menu yang terkait ikut terhapus (cascadeOnDelete sudah diatur di migration).
      */
-    public function destroy(string $id)
+    public function destroy(Kategori $kategori)
     {
-        //
+        $kategori->delete();
+
+        return redirect()->route('kategori.index')
+            ->with('success', 'Kategori berhasil dihapus.');
     }
 }

@@ -5,6 +5,10 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\KategoriController;
+use App\Http\Controllers\PelangganController;
+use App\Http\Controllers\PesananController;
+use App\Http\Controllers\ReservasiController;
+use App\Http\Controllers\ProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,21 +34,36 @@ Route::middleware(['guest:barista'])->group(function () {
 });
 
 
-// Setelah login
+// Setelah login (semua barista, apapun posisinya)
 Route::middleware(['auth:barista'])->group(function () {
 
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
 
-    // CRUD Kategori
-    Route::resource('kategori', KategoriController::class);
+    // Transaksi — boleh diakses semua barista yang login
+    Route::resource('pesanan', PesananController::class);
+    Route::resource('pelanggan', PelangganController::class);
+    Route::resource('reservasi', ReservasiController::class);
 
-    // CRUD Menu
-    Route::resource('menu', MenuController::class);
+    // Profile barista yang sedang login
+    Route::get('/profile', [ProfileController::class, 'edit'])
+        ->name('profile.edit');
+
+    Route::put('/profile', [ProfileController::class, 'update'])
+        ->name('profile.update');
 
     // Logout
     Route::post('/logout', [AuthController::class, 'logout'])
         ->name('logout');
+
+
+    // Master Data — KHUSUS ADMIN, dilindungi middleware 'admin'
+    Route::middleware(['admin'])->group(function () {
+
+        Route::resource('kategori', KategoriController::class);
+        Route::resource('menu', MenuController::class);
+
+    });
 
 });

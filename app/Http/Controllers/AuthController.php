@@ -22,7 +22,7 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
-        // 1. Validasi input dari form (menggunakan posisi)
+        // 1. Validasi input dari form
         $request->validate([
             'posisi'   => 'required|string',
             'password' => 'required|string',
@@ -31,26 +31,17 @@ class AuthController extends Controller
             'password.required' => 'Password wajib diisi.',
         ]);
 
-        // 2. Hardcode login sementara
-        $hardcodedPosisi = 'admin';
-        $hardcodedPassword = 'rahasia123';
+        // 2. Cari barista berdasarkan posisi (case-insensitive)
+        $barista = Barista::whereRaw('LOWER(posisi) = ?', [strtolower($request->posisi)])->first();
 
-        if ($request->posisi === $hardcodedPosisi && $request->password === $hardcodedPassword) {
-            $barista = Barista::firstOrCreate(
-                ['posisi' => $hardcodedPosisi],
-                [
-                    'nama' => 'Admin Cravely',
-                    'shift' => 'Pagi',
-                    'password' => Hash::make($hardcodedPassword),
-                ]
-            );
-
+        // 3. Cek apakah data ditemukan dan password cocok (hashed check, bukan hardcode)
+        if ($barista && Hash::check($request->password, $barista->password)) {
             Auth::guard('barista')->login($barista, $request->filled('remember'));
             $request->session()->regenerate();
             return redirect()->route('dashboard');
         }
 
-        // 3. Jika gagal, kembalikan ke halaman login dengan pesan error posisi
+        // 4. Jika gagal, kembalikan ke halaman login dengan pesan error
         return back()->withErrors([
             'login_error' => 'Posisi atau password yang Anda masukkan salah.',
         ])->withInput($request->only('posisi'));
@@ -61,14 +52,11 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
-        // Keluar dari guard barista
         Auth::guard('barista')->logout();
 
-        // Hancurkan session yang berjalan
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        // Alihkan kembali ke halaman login
         return redirect()->route('login');
     }
 }

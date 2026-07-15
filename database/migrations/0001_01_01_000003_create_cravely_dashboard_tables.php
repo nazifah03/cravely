@@ -16,7 +16,7 @@ return new class extends Migration
             Schema::create('barista', function (Blueprint $table) {
                 $table->id('id_barista');
                 $table->string('nama');
-                $table->string('posisi')->unique();
+                $table->string('posisi'); // diperbaiki: unique() dihapus karena beberapa barista bisa punya posisi yang sama (mis. "Junior Barista")
                 $table->string('shift')->nullable();
                 $table->string('password');
                 $table->rememberToken();
@@ -31,6 +31,18 @@ return new class extends Migration
 
             if (!empty($baristaColumn) && stripos($baristaColumn[0]->COLUMN_TYPE, 'unsigned') === false) {
                 DB::statement('ALTER TABLE `barista` MODIFY `id_barista` bigint unsigned NOT NULL AUTO_INCREMENT');
+            }
+
+            // Jika tabel barista sudah ada dan masih punya constraint unique lama di posisi, hapus.
+            $uniqueIndexes = DB::select(
+                'SELECT INDEX_NAME FROM information_schema.statistics WHERE table_schema = ? AND table_name = ? AND column_name = ? AND non_unique = 0',
+                [$database, 'barista', 'posisi']
+            );
+
+            foreach ($uniqueIndexes as $index) {
+                if ($index->INDEX_NAME !== 'PRIMARY') {
+                    DB::statement("ALTER TABLE `barista` DROP INDEX `{$index->INDEX_NAME}`");
+                }
             }
         }
 
@@ -52,7 +64,7 @@ return new class extends Migration
                 $table->timestamps();
             });
         }
-        
+
         if (!Schema::hasTable('menu')) {
             Schema::create('menu', function (Blueprint $table) {
                 $table->id('id_menu');

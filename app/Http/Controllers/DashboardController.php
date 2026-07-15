@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\DB;
+use App\Models\Menu;
+use App\Models\Pesanan;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -18,40 +20,25 @@ class DashboardController extends Controller
         // Tanggal hari ini
         $hariIni = now()->toDateString();
 
+        // Pesanan hari ini, tidak termasuk yang dibatalkan
+        $pesananHariIniQuery = Pesanan::whereDate('tanggal_pesan', $hariIni)
+            ->where('status', '!=', 'dibatalkan');
 
         // Total pesanan hari ini
-        $totalPesananHariIni = DB::table('pesanan')
-            ->whereDate('tanggal_pesan', $hariIni)
-            ->count();
+        $totalPesananHariIni = (clone $pesananHariIniQuery)->count();
 
-
-        // Total pendapatan hari ini
-        $pendapatanHariIni = DB::table('detail_pesanan')
-            ->join('pesanan', 'detail_pesanan.id_pesanan', '=', 'pesanan.id_pesanan')
-            ->join('menu', 'detail_pesanan.id_menu', '=', 'menu.id_menu')
-            ->whereDate('pesanan.tanggal_pesan', $hariIni)
-            ->sum(DB::raw('menu.harga * detail_pesanan.jumlah')) ?? 0;
-
+        // Total pendapatan hari ini — pakai kolom 'total' yang sudah dihitung
+        // saat pesanan dibuat (snapshot harga saat itu), bukan harga menu saat ini.
+        $pendapatanHariIni = (clone $pesananHariIniQuery)->sum('total');
 
         // Jumlah seluruh menu
-        $totalMenu = DB::table('menu')
-            ->count();
-
+        $totalMenu = Menu::count();
 
         // 5 transaksi terbaru
-        $pesananTerbaru = DB::table('pesanan')
-            ->join('pelanggan', 'pesanan.id_pelanggan', '=', 'pelanggan.id_pelanggan')
-            ->join('barista', 'pesanan.id_barista', '=', 'barista.id_barista')
-            ->select(
-                'pesanan.id_pesanan',
-                'pesanan.tanggal_pesan',
-                'pelanggan.nama as nama_pelanggan',
-                'barista.nama as nama_barista'
-            )
-            ->orderBy('pesanan.id_pesanan', 'desc')
+        $pesananTerbaru = Pesanan::with(['pelanggan', 'barista'])
+            ->latest('id_pesanan')
             ->take(5)
             ->get();
-
 
         return view('dashboard.dashboard', compact(
             'baristaAktif',
