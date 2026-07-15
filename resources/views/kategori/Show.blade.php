@@ -23,7 +23,7 @@
             <table class="w-full text-left text-sm">
                 <thead>
                     <tr class="text-gray-500 border-b">
-                        <th class="py-2">Nama Kopi</th>
+                        <th class="py-2">Nama</th>
                         <th class="py-2">Size</th>
                         <th class="py-2 text-right">Harga</th>
                     </tr>

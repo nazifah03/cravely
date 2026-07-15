@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Menu Kopi')
-@section('page-title', 'Kelola Menu Kopi')
+@section('title', 'Menu')
+@section('page-title', 'Kelola Menu')
 
 @section('content')
 
     <div class="flex justify-between items-center">
-        <p class="text-sm text-gray-500">Daftar menu kopi yang tersedia.</p>
+        <p class="text-sm text-gray-500">Daftar menu yang tersedia.</p>
         <a href="{{ route('menu.create') }}"
             class="bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition">
             + Tambah Menu
@@ -17,7 +17,7 @@
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="bg-gray-100 text-gray-600 uppercase text-xs tracking-wider">
-                    <th class="py-3 px-6">Nama Kopi</th>
+                    <th class="py-3 px-6">Nama Menu</th>
                     <th class="py-3 px-6">Kategori</th>
                     <th class="py-3 px-6">Size</th>
                     <th class="py-3 px-6">Harga</th>

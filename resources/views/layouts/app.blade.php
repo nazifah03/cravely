@@ -54,7 +54,7 @@
                         <a href="{{ route('menu.index') }}"
                             class="flex items-center gap-3 py-3 px-4 rounded-xl mb-1 transition-all duration-300
                                 {{ request()->routeIs('menu.*') ? 'bg-amber-600 text-white shadow font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
-                            Menu Kopi
+                            Menu
                         </a>
                     @endif
 
