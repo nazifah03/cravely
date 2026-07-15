@@ -60,16 +60,16 @@
 
                     <p class="text-xs uppercase text-gray-500 mt-8 mb-2 px-2 tracking-widest">Transaksi</p>
 
-                    <a href="{{ route('pesanan.index') }}"
-                        class="flex items-center gap-3 py-3 px-4 rounded-xl mb-1 transition-all duration-300
-                            {{ request()->routeIs('pesanan.*') ? 'bg-amber-600 text-white shadow font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
-                        Pesanan
-                    </a>
-
                     <a href="{{ route('pelanggan.index') }}"
                         class="flex items-center gap-3 py-3 px-4 rounded-xl mb-1 transition-all duration-300
                             {{ request()->routeIs('pelanggan.*') ? 'bg-amber-600 text-white shadow font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                         Pelanggan
+                    </a>
+
+                    <a href="{{ route('pesanan.index') }}"
+                        class="flex items-center gap-3 py-3 px-4 rounded-xl mb-1 transition-all duration-300
+                            {{ request()->routeIs('pesanan.*') ? 'bg-amber-600 text-white shadow font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+                        Pesanan
                     </a>
 
                     <a href="{{ route('reservasi.index') }}"
