@@ -42,6 +42,9 @@ Route::middleware(['auth:barista'])->group(function () {
         ->name('dashboard');
 
     // Transaksi — boleh diakses semua barista yang login
+    Route::get('pesanan/{pesanan}/struk', [PesananController::class, 'struk'])
+        ->name('pesanan.struk');
+
     Route::resource('pesanan', PesananController::class);
     Route::resource('pelanggan', PelangganController::class);
     Route::resource('reservasi', ReservasiController::class);

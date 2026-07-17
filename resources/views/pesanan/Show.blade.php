@@ -11,10 +11,16 @@
                 <h2 class="text-lg font-bold text-gray-800">Pesanan #{{ $pesanan->id_pesanan }}</h2>
                 <p class="text-sm text-gray-500 mt-1">{{ $pesanan->tanggal_pesan->translatedFormat('d M Y, H:i') }}</p>
             </div>
-            <a href="{{ route('pesanan.edit', $pesanan) }}"
-                class="bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
-                Ubah Status
-            </a>
+            <div class="flex gap-2">
+                <a href="{{ route('pesanan.struk', $pesanan) }}" target="_blank"
+                    class="bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+                    🧾 Lihat Struk
+                </a>
+                <a href="{{ route('pesanan.edit', $pesanan) }}"
+                    class="bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+                    Ubah Status
+                </a>
+            </div>
         </div>
 
         <div class="grid grid-cols-2 gap-4 text-sm">
@@ -31,7 +37,7 @@
                 <p class="font-medium text-gray-800 capitalize">{{ $pesanan->status }}</p>
             </div>
             <div>
-                <p class="text-gray-500">Total</p>
+                <p class="text-gray-500">Total (termasuk PPN)</p>
                 <p class="font-bold text-amber-600">Rp {{ number_format($pesanan->total, 0, ',', '.') }}</p>
             </div>
         </div>

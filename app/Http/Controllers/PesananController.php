@@ -13,6 +13,12 @@ use Illuminate\View\View;
 
 class PesananController extends Controller
 {
+    /**
+     * Tarif PPN yang dipakai untuk perhitungan struk.
+     * Diletakkan sebagai konstanta supaya mudah diubah di satu tempat saja.
+     */
+    private const TARIF_PAJAK = 0.11; // PPN 11%
+
     public function index(): View
     {
         $pesanan = Pesanan::with(['pelanggan', 'barista'])->latest()->paginate(10);
@@ -30,8 +36,8 @@ class PesananController extends Controller
 
     /**
      * Simpan pesanan baru beserta detail item-nya sekaligus.
-     * Total dihitung otomatis dari (harga menu x jumlah) tiap item,
-     * bukan dari input manual, supaya tidak bisa dimanipulasi dari form.
+     * Total = subtotal item + PPN 11%, dihitung otomatis dari harga menu saat itu.
+     * Setelah tersimpan, langsung diarahkan ke halaman struk (bukan halaman detail biasa).
      */
     public function store(Request $request): RedirectResponse
     {
@@ -43,13 +49,13 @@ class PesananController extends Controller
         ]);
 
         $pesanan = DB::transaction(function () use ($validated) {
-            $total = 0;
+            $subtotal = 0;
             $itemsWithHarga = [];
 
             foreach ($validated['items'] as $item) {
                 $menu = Menu::findOrFail($item['id_menu']);
-                $subtotal = $menu->harga * $item['jumlah'];
-                $total += $subtotal;
+                $subtotalItem = $menu->harga * $item['jumlah'];
+                $subtotal += $subtotalItem;
 
                 $itemsWithHarga[] = [
                     'id_menu' => $menu->id_menu,
@@ -57,6 +63,9 @@ class PesananController extends Controller
                     'harga' => $menu->harga,
                 ];
             }
+
+            $pajak = round($subtotal * self::TARIF_PAJAK);
+            $total = $subtotal + $pajak;
 
             $pesanan = Pesanan::create([
                 'id_pelanggan' => $validated['id_pelanggan'],
@@ -71,7 +80,8 @@ class PesananController extends Controller
             return $pesanan;
         });
 
-        return redirect()->route('pesanan.show', $pesanan)->with('success', 'Pesanan berhasil dibuat.');
+        return redirect()->route('pesanan.struk', $pesanan)
+            ->with('success', 'Pesanan berhasil dibuat.');
     }
 
     public function show(Pesanan $pesanan): View
@@ -81,13 +91,26 @@ class PesananController extends Controller
         return view('pesanan.show', compact('pesanan'));
     }
 
+    /**
+     * Halaman struk/bill pesanan —  ditampilkan dan dicetak,
+     * terpisah dari layout dashboard (tanpa sidebar).
+     */
+    public function struk(Pesanan $pesanan): View
+    {
+        $pesanan->load(['pelanggan', 'barista', 'detailPesanan.menu']);
+
+        $subtotal = $pesanan->detailPesanan->sum(fn ($item) => $item->harga * $item->jumlah);
+        $pajak = $pesanan->total - $subtotal;
+
+        return view('pesanan.struk', compact('pesanan', 'subtotal', 'pajak'));
+    }
+
     public function edit(Pesanan $pesanan): View
     {
         return view('pesanan.edit', compact('pesanan'));
     }
 
-    /**
-     * Update sejauh ini hanya untuk ubah status pesanan
+    /** perbaikan status
      * (mis. pending -> diproses -> selesai), bukan ubah item.
      */
     public function update(Request $request, Pesanan $pesanan): RedirectResponse
